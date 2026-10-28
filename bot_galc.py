@@ -1,4 +1,5 @@
 import math
+import re
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, ConversationHandler, filters
 
@@ -21,12 +22,16 @@ def calc_fibra(fibra):
     port = fibra - ((slot - 1) * 24)
     return slot, port
 
+def extrair_numeros(texto):
+    # pega todos os numeros de "1-1-4-12" -> [1,1,4,12]
+    return list(map(int, re.findall(r'\d+', texto)))
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👋 GALC - Escolha:", reply_markup=markup)
 
 async def escolha_galc(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['modo'] = 'galc'
-    await update.message.reply_text("Digite o SLOT GALC:")
+    await update.message.reply_text("Digite o SLOT GALC (pode ser 4 ou 1-1-4-12):")
     return SLOT
 
 async def escolha_fibra(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,21 +45,55 @@ async def escolha_dgo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return SLOT
 
 async def receber_slot(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['slot'] = int(update.message.text)
-    msg = "SLOT OK! Agora digite a PORTA:"
-    await update.message.reply_text(msg)
+    texto = update.message.text.strip()
+    numeros = extrair_numeros(texto)
+
+    if not numeros:
+        await update.message.reply_text("Digite só números! Ex: 4 ou 1-1-4-12")
+        return SLOT
+
+    # Se mandou completo tipo 1-1-4-12 ou 4-12
+    if len(numeros) >= 2:
+        slot = numeros[-2]
+        port = numeros[-1]
+        context.user_data['slot'] = slot
+        
+        modo = context.user_data['modo']
+        if modo == 'galc':
+            pon, slot_icx, port_icx = calc_galc(slot, port)
+            await update.message.reply_text(f"✅ GALC {slot}/{port}\n➡️ ICX: SLOT {slot_icx} PORT {port_icx}", reply_markup=markup)
+        else:
+            fibra = (slot - 1) * 24 + port
+            await update.message.reply_text(f"✅ DGO {slot}/{port}\n➡️ FIBRA: {fibra}", reply_markup=markup)
+        return ConversationHandler.END
+
+    # Se mandou só o SLOT (ex: 4)
+    context.user_data['slot'] = numeros[0]
+    await update.message.reply_text("SLOT OK! Agora digite a PORTA:")
     return PORT
 
 async def receber_port(update: Update, context: ContextTypes.DEFAULT_TYPE):
     modo = context.user_data['modo']
+    texto = update.message.text.strip()
+    numeros = extrair_numeros(texto)
+
+    if not numeros:
+        await update.message.reply_text("Digite só números!")
+        return PORT
+
     if modo == 'fibra':
-        fibra = int(update.message.text)
+        fibra = numeros[-1] # pega o ultimo numero
         slot, port = calc_fibra(fibra)
         await update.message.reply_text(f"🔄 FIBRA {fibra}\n➡️ DGO: SLOT {slot} PORT {port}", reply_markup=markup)
         return ConversationHandler.END
     
-    slot = context.user_data['slot']
-    port = int(update.message.text)
+    # Se no campo da porta mandou de novo "1-1-4-12"
+    if len(numeros) >= 2:
+        slot = numeros[-2]
+        port = numeros[-1]
+    else:
+        slot = context.user_data['slot']
+        port = numeros[0]
 
     if modo == 'galc':
         pon, slot_icx, port_icx = calc_galc(slot, port)
@@ -80,3 +119,4 @@ conv = ConversationHandler(
 app.add_handler(CommandHandler("start", start))
 app.add_handler(conv)
 app.run_polling()
+
