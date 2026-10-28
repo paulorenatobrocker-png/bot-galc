@@ -1,22 +1,8 @@
-import os
-from flask import Flask
-import threading
-app = Flask(__name__)
-@app.route('/')
-def home():
-    return "Bot GALC online!"
-def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-threading.Thread(target=run_flask, daemon=True).start()
-
-# DAQUI PRA BAIXO SEU CÓDIGO ANTIGO DO BOT
 import math
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, ConversationHandler, filters
 
-import os
-TOKEN = os.getenv("TOKEN")
+TOKEN = "9034855728:AAF6j-LWlZ4aA-XFYIdJ-W1tgm2GgsVnGDM"
 
 SLOT, PORT = range(2)
 
@@ -53,15 +39,7 @@ async def escolha_dgo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return SLOT
 
 async def receber_slot(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = update.message.text.strip()
-    # aceita tanto "4" quanto "1-1-4-12" ou "4-12"
-    context.user_data['slot'] = texto
-    try:
-        # tenta salvar como número se for só um número
-        slot_num = int(texto.split('-')[0])
-        context.user_data['slot_num'] = slot_num
-    except:
-        pass
+    context.user_data['slot'] = int(update.message.text)
     msg = "SLOT OK! Agora digite a PORTA:"
     await update.message.reply_text(msg)
     return PORT
