@@ -53,15 +53,15 @@ async def escolha_dgo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return SLOT
 
 async def receber_slot(update: Update, context: ContextTypes.DEFAULT_TYPE):
- texto = update.message.text.strip()
-# aceita tanto "4" quanto "1-1-4-12" ou "4-12"
-context.user_data['slot'] = texto
-try:
-    # tenta salvar como número se for só um número
-    slot_num = int(texto.split('-')[0])
-    context.user_data['slot_num'] = slot_num
-except:
-    pass
+    texto = update.message.text.strip()
+    # aceita tanto "4" quanto "1-1-4-12" ou "4-12"
+    context.user_data['slot'] = texto
+    try:
+        # tenta salvar como número se for só um número
+        slot_num = int(texto.split('-')[0])
+        context.user_data['slot_num'] = slot_num
+    except:
+        pass
     msg = "SLOT OK! Agora digite a PORTA:"
     await update.message.reply_text(msg)
     return PORT
