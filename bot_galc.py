@@ -2,7 +2,8 @@ import math
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, ConversationHandler, filters
 
-TOKEN = "9034855728:AAF6j-LWlZ4aA-XFYIdJ-W1tgm2GgsVnGDM"
+import os
+TOKEN = os.getenv("TOKEN")
 
 SLOT, PORT = range(2)
 
