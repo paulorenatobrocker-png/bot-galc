@@ -87,7 +87,7 @@ async def receber_port(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Digite a PORTA:")
         return PORT
     modo = context.user_data['modo']
-    slot = context.user_data['slot']
+    slot = context.user_data.get('slot', 0)
     port = v
     equip = context.user_data['equip']
 
@@ -119,7 +119,7 @@ async def receber_port(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Qual equipamento?", reply_markup=markup_equip)
         return EQUIP
     elif modo == 'fibra_dgo':
-        fibra = slot
+        fibra = port
         slot_dgo, port_dgo = calc_fibra(fibra)
         await update.message.reply_text(f"🔄 FIBRA {fibra}\n➡ DGO: SLOT {slot_dgo} PORT {port_dgo}", reply_markup=markup_equip)
         await update.message.reply_text("Qual equipamento?", reply_markup=markup_equip)
